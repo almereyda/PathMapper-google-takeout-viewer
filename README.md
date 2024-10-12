@@ -2,6 +2,8 @@
 
 PathMapper is a React app to visualizes your Google Takeout location history data on an interactive map. It allows you to explore your movements, filter by activity types, and view detailed information about your trips and place visits.
 
+![screenshot.png](screenshot.png)
+
 ## Features
 
 - 🗺️ Interactive map visualization of location history
