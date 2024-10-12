@@ -23,6 +23,17 @@ const activityColors = {
 const LINE_WIDTH = 1.5;
 const LINE_OPACITY = 0.6;
 
+// Custom Popup class
+class GlassPopup extends mapboxgl.Popup {
+  setDOMContent(content) {
+    super.setDOMContent(content);
+    if (this._content) {
+      this._content.classList.add('glass-panel', 'text-white');
+    }
+    return this;
+  }
+}
+
 const Map = ({ locationData, activityTypes }) => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -123,19 +134,25 @@ const Map = ({ locationData, activityTypes }) => {
       });
 
       // Add a popup for place visits
+      // Update the place visits popup creation:
       map.current.on('click', 'place-visits', (e) => {
         const coordinates = e.features[0].geometry.coordinates.slice();
         const properties = e.features[0].properties;
 
-        new mapboxgl.Popup()
+        const popupContent = document.createElement('div');
+        popupContent.innerHTML = `
+      <div class="p-4">
+        <h3 class="text-lg font-semibold mb-2">${properties.name || 'Unnamed Place'}</h3>
+        <p class="mb-1"><strong>Address:</strong> ${properties.address || 'N/A'}</p>
+        <p class="mb-1"><strong>Type:</strong> ${properties.semanticType || 'N/A'}</p>
+        <p class="mb-1"><strong>Visit Start:</strong> ${new Date(properties.startTime).toLocaleString()}</p>
+        <p class="mb-1"><strong>Visit End:</strong> ${new Date(properties.endTime).toLocaleString()}</p>
+      </div>
+    `;
+
+        new GlassPopup()
           .setLngLat(coordinates)
-          .setHTML(`
-            <h3>${properties.name || 'Unnamed Place'}</h3>
-            <p>Address: ${properties.address || 'N/A'}</p>
-            <p>Type: ${properties.semanticType || 'N/A'}</p>
-            <p>Visit Start: ${new Date(properties.startTime).toLocaleString()}</p>
-            <p>Visit End: ${new Date(properties.endTime).toLocaleString()}</p>
-          `)
+          .setDOMContent(popupContent)
           .addTo(map.current);
       });
 
@@ -223,8 +240,7 @@ const Map = ({ locationData, activityTypes }) => {
         />
       </div>
       {selectedTrip && (
-        // filter-popover bg-black bg-opacity-50 backdrop-filter backdrop-blur-lg p-4 rounded-lg shadow-lg
-        <div className="trip-info absolute bottom-4 left-4 z-10 p-4 glass-panel rounded-lg shadow-lg text-white bg-black bg-opacity-50 backdrop-filter backdrop-blur-lg">
+        <div className="trip-info absolute bottom-4 left-4 z-10 p-4 glass-panel rounded-lg shadow-lg text-white">
           <h3 className="text-lg font-semibold">{selectedTrip.activityType}</h3>
           <p>Start Time: {new Date(selectedTrip.startTime).toLocaleString()}</p>
           <p>End Time: {new Date(selectedTrip.endTime).toLocaleString()}</p>
@@ -234,9 +250,7 @@ const Map = ({ locationData, activityTypes }) => {
           </div>
           <button
             className="mt-2 px-2 py-1 bg-blue-500 rounded hover:bg-blue-600"
-            onClick={() => {
-              console.log(selectedTrip);
-              setSelectedTrip(null)}}
+            onClick={() => setSelectedTrip(null)}
           >
             Close
           </button>

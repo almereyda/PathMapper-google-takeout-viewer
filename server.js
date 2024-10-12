@@ -30,7 +30,10 @@ app.get('/api/location-data', async (req, res) => {
       return res.status(404).json({ error: 'No JSON files found in the location history directory' });
     }
 
-    const processedData = [];
+    const processedData = {
+      routes: [],
+      placeVisits: []
+    };
 
     for (const file of files) {
       try {
@@ -38,21 +41,35 @@ app.get('/api/location-data', async (req, res) => {
         const fileContent = await fs.readFile(file, 'utf8');
         const json = JSON.parse(fileContent);
 
+        console.log(`File content parsed, timelineObjects length: ${json.timelineObjects ? json.timelineObjects.length : 'undefined'}`);
+
         if (json.timelineObjects && Array.isArray(json.timelineObjects)) {
           json.timelineObjects.forEach(obj => {
             if (obj.activitySegment) {
-              const { startLocation, endLocation, waypointPath, activityType } = obj.activitySegment;
+              const { startLocation, endLocation, waypointPath, activityType, duration } = obj.activitySegment;
               
               if (waypointPath && waypointPath.waypoints) {
                 const coordinates = waypointPath.waypoints.map(wp => [wp.lngE7 / 1e7, wp.latE7 / 1e7]);
-                processedData.push({ coordinates, activityType });
+                processedData.routes.push({ coordinates, activityType, startTime: duration.startTimestamp, endTime: duration.endTimestamp });
               } else if (startLocation && endLocation) {
                 const coordinates = [
                   [startLocation.longitudeE7 / 1e7, startLocation.latitudeE7 / 1e7],
                   [endLocation.longitudeE7 / 1e7, endLocation.latitudeE7 / 1e7]
                 ];
-                processedData.push({ coordinates, activityType });
+                processedData.routes.push({ coordinates, activityType, startTime: duration.startTimestamp, endTime: duration.endTimestamp });
               }
+            } else if (obj.placeVisit) {
+              const { location, duration, placeConfidence, centerLatE7, centerLngE7 } = obj.placeVisit;
+              processedData.placeVisits.push({
+                coordinates: [centerLngE7 / 1e7, centerLatE7 / 1e7],
+                name: location.name || location.address,
+                semanticType: location.semanticType,
+                startTime: duration.startTimestamp,
+                endTime: duration.endTimestamp,
+                confidence: placeConfidence,
+                address: location.address,
+                placeId: location.placeId
+              });
             }
           });
         } else {
@@ -63,7 +80,8 @@ app.get('/api/location-data', async (req, res) => {
       }
     }
 
-    console.log(`Processed ${processedData.length} data points`);
+    console.log(`Processed ${processedData.routes.length} routes and ${processedData.placeVisits.length} place visits`);
+    console.log('Sample processed data:', JSON.stringify(processedData).slice(0, 1000));
     res.json(processedData);
   } catch (error) {
     console.error('Error processing location data:', error);

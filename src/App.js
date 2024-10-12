@@ -10,12 +10,17 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      console.log('Starting to fetch data...');
       try {
-        console.log('Fetching location data');
         const response = await fetch('/api/location-data');
+        console.log('Fetch response status:', response.status);
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         const data = await response.json();
         console.log('Received raw data:', data);
 
@@ -25,11 +30,15 @@ const App = () => {
 
         setLocationData(processedData);
 
-        const types = [...new Set(processedData.routes.map(item => item.activityType).filter(Boolean))];
-        console.log('Activity types:', types);
-        setActivityTypes(['all', ...types]);
+        if (processedData.routes && processedData.routes.length > 0) {
+          const types = [...new Set(processedData.routes.map(item => item.activityType).filter(Boolean))];
+          console.log('Activity types:', types);
+          setActivityTypes(['all', ...types]);
+        } else {
+          console.log('No routes found in processed data');
+        }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching or processing data:', error);
         setError(`Failed to load data: ${error.message}`);
       } finally {
         setIsLoading(false);

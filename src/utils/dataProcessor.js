@@ -1,28 +1,16 @@
 export const processLocationData = async (data) => {
-  console.log('Processing location data:', data);
+  console.log('Processing location data:', JSON.stringify(data).slice(0, 1000));
 
   const processedData = {
     routes: [],
     placeVisits: []
   };
 
-  const parseCoordinates = (coords) => {
-    if (typeof coords === 'string') {
-      try {
-        return JSON.parse(coords).filter(coord => coord[0] !== null && coord[1] !== null);
-      } catch (e) {
-        console.error('Error parsing coordinates:', e);
-        return [];
-      }
-    } else if (Array.isArray(coords)) {
-      return coords.filter(coord => coord[0] !== null && coord[1] !== null);
-    }
-    return [];
-  };
-
   if (Array.isArray(data)) {
-    data.forEach(item => {
+    console.log('Data is an array with length:', data.length);
+    data.forEach((item, index) => {
       if (item.coordinates && item.activityType) {
+        console.log(`Processing item ${index}: ${JSON.stringify(item)}`);
         const parsedCoordinates = parseCoordinates(item.coordinates);
         if (parsedCoordinates.length > 0) {
           processedData.routes.push({
@@ -37,8 +25,19 @@ export const processLocationData = async (data) => {
       }
     });
   } else if (typeof data === 'object') {
+    console.log('Data is an object');
+    if (data.routes) {
+      console.log('Processing routes:', data.routes.length);
+      processedData.routes = data.routes;
+    }
+    if (data.placeVisits) {
+      console.log('Processing placeVisits:', data.placeVisits.length);
+      processedData.placeVisits = data.placeVisits;
+    }
     if (data.timelineObjects) {
-      data.timelineObjects.forEach(obj => {
+      console.log('Processing timelineObjects:', data.timelineObjects.length);
+      data.timelineObjects.forEach((obj, index) => {
+        console.log(`Processing timelineObject ${index}: ${JSON.stringify(obj).slice(0, 200)}`);
         if (obj.activitySegment) {
           const { startLocation, endLocation, waypointPath, activityType, duration } = obj.activitySegment;
           
@@ -82,6 +81,20 @@ export const processLocationData = async (data) => {
     }
   }
 
-  console.log('Processed data:', processedData);
+  console.log('Processed data:', JSON.stringify(processedData).slice(0, 1000));
   return processedData;
+};
+
+const parseCoordinates = (coords) => {
+  if (typeof coords === 'string') {
+    try {
+      return JSON.parse(coords).filter(coord => coord[0] !== null && coord[1] !== null);
+    } catch (e) {
+      console.error('Error parsing coordinates:', e);
+      return [];
+    }
+  } else if (Array.isArray(coords)) {
+    return coords.filter(coord => coord[0] !== null && coord[1] !== null);
+  }
+  return [];
 };
