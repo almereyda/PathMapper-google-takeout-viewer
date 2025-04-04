@@ -1,14 +1,14 @@
 .app {
-    text-align: center;
-  }
-  
-  .map-container {
-    height: 600px;
-    width: 100%;
-  }
-  
-  .loading {
-    margin-top: 20px;
-    font-size: 18px;
-    color: #666;
-  }
+  text-align: center;
+}
+
+.map-container {
+  height: 600px;
+  width: 100%;
+}
+
+.loading {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #666;
+}
