@@ -1,12 +1,10 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 import ColorFilterControls from "./ColorFilterControls";
 
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN;
-
-const NYC_COORDINATES = [-74.006, 40.7128];
-const DEFAULT_ZOOM = 11;
+const DEFAULT_CENTER = [13.40463, 52.518526];
+const DEFAULT_ZOOM = 6;
 
 const activityColors = {
   WALKING: "#4CAF50",
@@ -24,7 +22,7 @@ const LINE_WIDTH = 1.5;
 const LINE_OPACITY = 0.6;
 
 // Custom Popup class
-class GlassPopup extends mapboxgl.Popup {
+class GlassPopup extends maplibregl.Popup {
   setDOMContent(content) {
     super.setDOMContent(content);
     if (this._content) {
@@ -169,7 +167,7 @@ const Map = ({ locationData, activityTypes }) => {
 
     // Only fit bounds if user has interacted with the map
     if (userInteracted) {
-      const bounds = new mapboxgl.LngLatBounds();
+      const bounds = new maplibregl.LngLatBounds();
       filteredRoutes.forEach((route) => {
         route.coordinates.forEach((coord) => bounds.extend(coord));
       });
@@ -191,15 +189,15 @@ const Map = ({ locationData, activityTypes }) => {
   useEffect(() => {
     if (map.current) return;
 
-    map.current = new mapboxgl.Map({
+    map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v10",
-      center: NYC_COORDINATES,
+      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+      center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
     });
 
     map.current.on("load", () => {
-      map.current.addControl(new mapboxgl.NavigationControl());
+      map.current.addControl(new maplibregl.NavigationControl());
       setMapLoaded(true);
     });
 
@@ -233,8 +231,8 @@ const Map = ({ locationData, activityTypes }) => {
   }, [mapLoaded, locationData, updateMap]);
 
   return (
-    <div className="relative w-full h-screen">
-      <div ref={mapContainer} className="absolute inset-0" />
+    <div className="relative w-full h-[95vh]">
+      <div ref={mapContainer} className="absolute inset-0 maplibregl-fix" />
       <div className="absolute top-4 left-4 z-10">
         <ColorFilterControls
           onFilterChange={setFilter}

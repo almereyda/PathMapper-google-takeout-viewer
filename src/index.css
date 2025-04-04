@@ -43,13 +43,17 @@ code {
   overflow: hidden;
 }
 
+.maplibregl-fix {
+  height: 100%;
+}
+
 /* Mapbox popup styles */
-.mapboxgl-popup-content {
+.maplibregl-popup-content {
   background: transparent !important;
   padding: 0 !important;
   box-shadow: none !important;
 }
 
-.mapboxgl-popup-tip {
+.maplibregl-popup-tip {
   display: none;
 }
